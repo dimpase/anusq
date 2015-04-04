@@ -54,16 +54,19 @@ end;
 ##  (modified from Werner Nickel's function NqPresPrintToFile)
 ##
 SqPresPrintToFile := function( file, fp )
-    local   i,  gens,  append,  size;
+    local   fx, i,  gens,  append,  size, fpgenerators, fprelators;
 
-    # append a relator (this is a hack)
+    fpgenerators := GeneratorsOfGroup(FreeGroupOfFpGroup(fp));
+    fprelators := RelatorsOfFpGroup(fp);
+    
+# append a relator (this is a hack)
     append := function( rel )
 	local   pos,  len,  max;
 
 	max := 10;
 	pos := 1;
-	rel := MappedWord( rel, fp.generators, gens );
-	len := LengthWord(rel);
+	rel := MappedWord( rel, fpgenerators, gens );
+	len := Length(rel);
 	while 0 < len  do
 	   if len <= max  then
 	        AppendTo( file, Subword(rel,pos,pos+len-1) );
@@ -83,21 +86,22 @@ SqPresPrintToFile := function( file, fp )
 
     # print presentation to file using generators "x1" ... "xn"
     PrintTo( file, "< " );
-    if 0 < Length(fp.generators)  then
-        gens := WordList( Length(fp.generators), "x" );
+    if 0 < Length(fpgenerators)  then
+        fx := FreeGroup( Length( fpgenerators ), "x" );
+        gens := GeneratorsOfGroup( fx );
 	AppendTo( file, gens[1] );
     fi;
-    for i  in [2..Length(fp.generators)]  do
+    for i  in [2..Length(fpgenerators)]  do
 	AppendTo( file, ", ", gens[i] );
     od;
     AppendTo( file, " |\n    " );
-    if IsBound(fp.relators)  then
-        if 0 < Length(fp.relators)  then
-	    append( fp.relators[1] );
+    if not fprelators = []  then
+        if 0 < Length(fprelators)  then
+	    append( fprelators[1] );
 	fi;
-	for i  in [2..Length(fp.relators)]  do
+	for i  in [2..Length(fprelators)]  do
 	    AppendTo( file, ",\n    " );
-	    append( fp.relators[i] );
+	    append( fprelators[i] );
 	od;
     fi;
     AppendTo( file, "\n>\n" );
@@ -137,18 +141,16 @@ Sq := function( arg )
     fi;
 
     # create a tmp directory
-    dir := TmpName();
-    Exec(Concatenation( "mkdir ", dir ));
-    name := Concatenation( dir, "/SQ_INPUT" );
-    res  := Concatenation( dir, "/SQ_OUTPUT" );
+    dir := DirectoryTemporary();
+    name := Filename( dir, "SQ_INPUT" );
+    res  := Filename( dir, "SQ_OUTPUT" );
 
     # set up SQ input file SQ_INPUT in <dir>
-    if IsRec( arg[1] ) then
+    if IsGroup( arg[1] ) then
 	SqPresPrintToFile( name, arg[1] );
     elif IsString( arg[1] ) then
         Exec(Concatenation( "cp ", arg[1], " ", name ));
     else
-        Exec(Concatenation( "rm -rf ", dir ));
 	return SqUsage();
     fi;
 
@@ -169,16 +171,20 @@ Sq := function( arg )
     fi;
 
     # call the sq
-    cmd := ConcatenationString( cmd, " < ", name, " " );
-    cmd := ConcatenationString( cmd, " > ", res );
-    ExecPkg( "anusq", "bin/Sq", cmd, dir );
+    cmd := Concatenation( cmd, " < ", name, " " );
+    cmd := Concatenation( cmd, " > ", res );
+    Exec(Concatenation(Filename(DirectoryCurrent(), "bin/Sq"), cmd ));
+#    Process( dir,           ## executing directory
+#                      nq,                            ## executable
+#                      params.input_stream,           ## input  stream
+#                      params.output_stream,          ## output stream
+#                      cmd );              ## command line arguments
+
+
 
     # read in the result
     AppendTo( res, ";\n" );
     Read(res);
-
-    # remove the tmp dir
-    Exec(Concatenation( "rm -rf ", dir ));
 
     # and return
     return SqPresentation;
