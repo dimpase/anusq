@@ -8,6 +8,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "pres.h"
 extern FILE *FN;
 
@@ -43,7 +44,7 @@ unsigned nchars;
 
 {	void	*ptr;
 
-	ptr = (void *)malloc( nchars, sizeof(char) );
+	ptr = (void *)malloc( nchars* sizeof(char) );
 	if( ptr == (void *) 0 ) AllocError( "CAllocate" );
 
 #ifdef DEBUG

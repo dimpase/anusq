@@ -13,9 +13,10 @@ VRSN="1.0, March 1994"
 ##  change and which settings are necessary.
 ##
 
-VEPATH = "/home/gap/pkg/ve/bin/"
+#VEPATH = "/home/gap/pkg/ve/bin/"
+VEPATH = "/home/dima/software/gap/ve/gap3r4p4/pkg/ve/bin/"
 
-CFLAGS = -O -DBSD -DCHAT=1 -DVERSION='$(VRSN)' -DVEP='$(VEPATH)' 
+CFLAGS = -O -DSYS_BSD -DCHAT=1 -DVERSION='$(VRSN)' -DVEP='$(VEPATH)'
 
 sq : mem.o modmem.o presentation.o pcp.o storepc.o arith.o sq.o \
 	consis.o  pcparith.o updatepres.o veinter.o eapquot.o modifypres.o \
